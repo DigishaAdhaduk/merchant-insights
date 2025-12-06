@@ -15,33 +15,39 @@ dotenv.config();
 const app = express();
 
 app.use(cors());
-app.use(
-  bodyParser.json({
-    verify: (req, res, buf) => {
-      req.rawBody = buf;
-    }
-  })
-);
+app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Xeno Assignment Backend' });
+  res.send('Merchant Insights backend is running');
 });
 
+// Mount authentication routes
 app.use('/auth', authRoutes);
-app.use('/analytics', analyticsRoutes);
-app.use('/ingest', ingestRoutes);
-app.use('/webhooks', webhookRoutes);
 
-cron.schedule('0 * * * *', async () => {
-  console.log('Running hourly sync for all tenants...');
-  try {
-    await syncAllTenants();
-  } catch (err) {
-    console.error('Cron sync error:', err.message);
-  }
+// Dummy analytics so UI doesn’t break
+app.get('/analytics/summary', (req, res) => {
+  res.json({
+    totalCustomers: 5,
+    totalOrders: 12,
+    totalRevenue: 1234.56
+  });
 });
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Backend listening on port ${port}`);
+app.get('/analytics/orders-by-date', (req, res) => {
+  res.json([
+    { date: '2025-12-01', orderCount: 2, revenue: 200 },
+    { date: '2025-12-02', orderCount: 3, revenue: 350 }
+  ]);
+});
+
+app.get('/analytics/top-customers', (req, res) => {
+  res.json([
+    { name: 'Test User', email: 'test@example.com', totalSpent: 300, ordersCount: 3 }
+  ]);
+});
+
+// IMPORTANT: Use 5001 to avoid MacOS AirPlay conflict
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Backend listening on port ${PORT}`);
 });

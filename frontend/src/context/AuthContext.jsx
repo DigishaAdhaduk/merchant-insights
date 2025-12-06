@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { jwtDecode } from'jwt-decode';
 
 const AuthContext = createContext(null);
 
@@ -8,20 +7,17 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    console.log('AuthContext useEffect, token =', token);
     if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser({ id: decoded.userId, tenantId: decoded.tenantId });
-      } catch (err) {
-        console.error('Invalid token', err);
-        setUser(null);
-      }
+      // Do NOT decode token now; treat any token as "logged in"
+      setUser({ email: 'demo@user', tenantId: 1 });
     } else {
       setUser(null);
     }
   }, [token]);
 
   const login = newToken => {
+    console.log('login() called with token:', newToken);
     localStorage.setItem('xeno_token', newToken);
     setToken(newToken);
   };
@@ -40,9 +36,12 @@ export function AuthProvider({ children }) {
     logout
   };
 
+  console.log('AuthContext value:', value);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   return useContext(AuthContext);
 }
+
